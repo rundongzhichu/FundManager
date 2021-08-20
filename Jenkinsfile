@@ -1,11 +1,6 @@
 pipeline {
     agent none
-    agent {
-        docker {
-            image 'maven:3-alpine'
-            args '-v /root/.m2:/root/.m2'
-        }
-    }
+
     stages {
         stage('Build') {
             agent any
@@ -18,6 +13,12 @@ pipeline {
              }
          }
         stage('Test') { 
+            agent {
+                docker {
+                    image 'maven:3-alpine'
+                    args '-v /root/.m2:/root/.m2'
+                }
+            }
             steps {
                 sh 'mvn test' 
             }
@@ -28,6 +29,7 @@ pipeline {
             }
         }
         stage('Deploy Container To Openshift') {
+              agent any
               steps {
                 sh "oc login https://localhost:8443 --username admin --password admin --insecure-skip-tls-verify=true"
                 sh "oc project ${projectName} || oc new-project ${projectName}"
